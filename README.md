@@ -1,2 +1,2 @@
-# salam
+# Salam
 سلام — HTTP benchmarking tool
