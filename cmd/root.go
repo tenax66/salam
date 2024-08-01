@@ -7,8 +7,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cockroachdb/errors"
 	"github.com/spf13/cobra"
 )
+
+type Result struct {
+	Info  string
+	Error error
+}
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -16,13 +22,13 @@ var rootCmd = &cobra.Command{
 	Short: "Run benchmarks for <URL>",
 	Long:  `Runs provided number of requests to <URL>.`,
 	Args:  cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		var wg sync.WaitGroup
 
 		url := args[0]
 		n, _ := cmd.Flags().GetInt("number")
 
-		results := make(chan string, n)
+		results := make(chan Result, n)
 
 		for i := 0; i < n; i++ {
 			wg.Add(1)
@@ -33,13 +39,19 @@ var rootCmd = &cobra.Command{
 		close(results)
 
 		for result := range results {
+			if result.Error != nil {
+				// TODO: use logging library
+				fmt.Printf("%v", result.Error)
+			}
 			fmt.Println(result)
 		}
+
+		return nil
 	},
 }
 
 // sendRequests sends an HTTP GET request to the specified URL.
-func sendRequests(wg *sync.WaitGroup, url string, results chan<- string) {
+func sendRequests(wg *sync.WaitGroup, url string, results chan<- Result) {
 	defer wg.Done()
 
 	start := time.Now()
@@ -47,9 +59,19 @@ func sendRequests(wg *sync.WaitGroup, url string, results chan<- string) {
 	duration := time.Since(start)
 
 	if err != nil {
+		results <- Result{
+			// TODO: refine this error wrapping
+			Info:  "",
+			Error: errors.Wrap(err, "an error occured while sending request"),
+		}
+
 		return
 	}
-	results <- fmt.Sprintf("Status code: %d, Time: %v", resp.StatusCode, duration)
+
+	results <- Result{
+		Info:  fmt.Sprintf("status code: %d, time: %v", resp.StatusCode, duration),
+		Error: nil,
+	}
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
