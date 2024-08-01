@@ -2,11 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/valyala/fasthttp"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -16,19 +17,38 @@ var rootCmd = &cobra.Command{
 	Long:  `Runs provided number of requests to <URL>.`,
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		var wg sync.WaitGroup
+
 		url := args[0]
 		n, _ := cmd.Flags().GetInt("number")
-		for i := 0; i < n; i++ {
-			start := time.Now()
-			status, _, err := fasthttp.Get([]byte{}, url)
-			duration := time.Since(start)
 
-			if err != nil {
-				return
-			}
-			fmt.Printf("Status code: %d, Time: %v\n", status, duration)
+		results := make(chan string, n)
+
+		for i := 0; i < n; i++ {
+			wg.Add(1)
+			go fetchURL(&wg, url, results)
+		}
+
+		wg.Wait()
+		close(results)
+
+		for result := range results {
+			fmt.Println(result)
 		}
 	},
+}
+
+func fetchURL(wg *sync.WaitGroup, url string, results chan<- string) {
+	defer wg.Done()
+
+	start := time.Now()
+	resp, err := http.Get(url)
+	duration := time.Since(start)
+
+	if err != nil {
+		return
+	}
+	results <- fmt.Sprintf("Status code: %d, Time: %v", resp.StatusCode, duration)
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
