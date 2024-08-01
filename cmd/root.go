@@ -1,16 +1,34 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
+	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/valyala/fasthttp"
 )
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "salam",
-	Short: "A HTTP benchmarking tool.",
-	Long:  `Salam is a CLI tool for HTTP benchmarking.`,
+	Use:   "salam [OPTIONS] <URL>",
+	Short: "Run benchmarks for <URL>",
+	Long:  `Runs provided number of requests to <URL>.`,
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		url := args[0]
+		n, _ := cmd.Flags().GetInt("number")
+		for i := 0; i < n; i++ {
+			start := time.Now()
+			status, _, err := fasthttp.Get([]byte{}, url)
+			duration := time.Since(start)
+
+			if err != nil {
+				return
+			}
+			fmt.Printf("Status code: %d, Time: %v\n", status, duration)
+		}
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -23,6 +41,9 @@ func Execute() {
 }
 
 func init() {
+	rootCmd.DisableFlagsInUseLine = true
+	rootCmd.Flags().IntP("number", "n", 1, "number of requests to run")
+
 	const usageTemplate = `Usage:
 {{if .Runnable}}{{.UseLine}}{{end}}
 {{if .HasAvailableSubCommands}}{{.CommandPath}} [command]{{end}}{{if gt (len .Aliases) 0}}
