@@ -26,7 +26,7 @@ var rootCmd = &cobra.Command{
 
 		for i := 0; i < n; i++ {
 			wg.Add(1)
-			go fetchURL(&wg, url, results)
+			go sendRequests(&wg, url, results)
 		}
 
 		wg.Wait()
@@ -38,8 +38,8 @@ var rootCmd = &cobra.Command{
 	},
 }
 
-// fetchURL sends an HTTP GET request to the specified URL.
-func fetchURL(wg *sync.WaitGroup, url string, results chan<- string) {
+// sendRequests sends an HTTP GET request to the specified URL.
+func sendRequests(wg *sync.WaitGroup, url string, results chan<- string) {
 	defer wg.Done()
 
 	start := time.Now()
@@ -63,7 +63,8 @@ func Execute() {
 
 func init() {
 	rootCmd.DisableFlagsInUseLine = true
-	rootCmd.Flags().IntP("number", "n", 1, "number of requests to run")
+	rootCmd.Flags().IntP("number", "n", 10, "number of requests to run")
+	rootCmd.Flags().IntP("concurrency", "c", 5, "number of workers to run concurrently")
 
 	const usageTemplate = `Usage:
 {{if .Runnable}}{{.UseLine}}{{end}}
