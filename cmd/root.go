@@ -27,12 +27,13 @@ var rootCmd = &cobra.Command{
 
 		url := args[0]
 		n, _ := cmd.Flags().GetInt("number")
+		c, _ := cmd.Flags().GetInt("concurrency")
 
 		results := make(chan Result, n)
 
-		for i := 0; i < n; i++ {
+		for i := 0; i < c; i++ {
 			wg.Add(1)
-			go sendRequests(&wg, url, results)
+			go sendRequests(&wg, url, n/c, results)
 		}
 
 		wg.Wait()
@@ -43,7 +44,7 @@ var rootCmd = &cobra.Command{
 				// TODO: use logging library
 				fmt.Printf("%v", result.Error)
 			}
-			fmt.Println(result)
+			fmt.Println(result.Info)
 		}
 
 		return nil
@@ -51,26 +52,29 @@ var rootCmd = &cobra.Command{
 }
 
 // sendRequests sends an HTTP GET request to the specified URL.
-func sendRequests(wg *sync.WaitGroup, url string, results chan<- Result) {
+func sendRequests(wg *sync.WaitGroup, url string, number int, results chan<- Result) {
 	defer wg.Done()
 
-	start := time.Now()
-	resp, err := http.Get(url)
-	duration := time.Since(start)
+	for i := 0; i < number; i++ {
+		start := time.Now()
+		resp, err := http.Get(url)
+		duration := time.Since(start)
 
-	if err != nil {
-		results <- Result{
-			// TODO: refine this error wrapping
-			Info:  "",
-			Error: errors.Wrap(err, "an error occured while sending request"),
+		if err != nil {
+			results <- Result{
+				// TODO: refine this error wrapping
+				Info:  "",
+				Error: errors.Wrap(err, "an error occured while sending request"),
+			}
+
+			return
 		}
 
-		return
-	}
+		results <- Result{
+			Info:  fmt.Sprintf("status code: %d, time: %v", resp.StatusCode, duration),
+			Error: nil,
+		}
 
-	results <- Result{
-		Info:  fmt.Sprintf("status code: %d, time: %v", resp.StatusCode, duration),
-		Error: nil,
 	}
 }
 
