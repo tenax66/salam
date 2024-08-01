@@ -38,6 +38,7 @@ var rootCmd = &cobra.Command{
 	},
 }
 
+// fetchURL sends an HTTP GET request to the specified URL.
 func fetchURL(wg *sync.WaitGroup, url string, results chan<- string) {
 	defer wg.Done()
 
