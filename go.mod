@@ -1,4 +1,4 @@
-module salam
+module github.com/tenax66/salam
 
 go 1.21.6
 

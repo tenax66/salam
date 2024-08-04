@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"salam/requests"
+	"github.com/tenax66/salam/requests"
 	"sync"
 
 	"github.com/spf13/cobra"

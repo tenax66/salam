@@ -1,6 +1,6 @@
 package main
 
-import "salam/cmd"
+import "github.com/tenax66/salam/cmd"
 
 func main() {
 	cmd.Execute()
