@@ -1,6 +1,7 @@
 # Salam
 
-سلام — HTTP benchmarking tool
+**سلام**
+HTTP benchmarking tool
 
 # Usage
 
