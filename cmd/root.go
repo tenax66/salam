@@ -37,7 +37,7 @@ var rootCmd = &cobra.Command{
 				// TODO: use logging library
 				fmt.Printf("%v", result.Error)
 			}
-			fmt.Println(result.Info)
+			fmt.Printf("status code: %d, time: %v\n", result.StatusCode, result.Duration)
 		}
 
 		return nil

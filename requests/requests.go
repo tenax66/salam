@@ -1,7 +1,7 @@
 package requests
 
 import (
-	"fmt"
+	"io"
 	"net/http"
 	"sync"
 	"time"
@@ -9,12 +9,15 @@ import (
 	"github.com/cockroachdb/errors"
 )
 
+// Result represents the result of a HTTP request.
 type Result struct {
-	Info  string
-	Error error
+	StatusCode int
+	Body       string
+	Duration   time.Duration
+	Error      error
 }
 
-// sendRequests sends an HTTP GET request to the specified URL.
+// SendRequests sends an HTTP GET request to the specified URL.
 func SendRequests(wg *sync.WaitGroup, url string, number int, results chan<- Result) {
 	defer wg.Done()
 
@@ -26,16 +29,34 @@ func SendRequests(wg *sync.WaitGroup, url string, number int, results chan<- Res
 		if err != nil {
 			results <- Result{
 				// TODO: refine this error wrapping
-				Info:  "",
 				Error: errors.Wrap(err, "an error occured while sending request"),
 			}
 
 			return
 		}
 
+		// Prevent resource leaks and enable keep-alive
+		// cf. https://pkg.go.dev/net/http#Client
+		// > If the Body is not both read to EOF and closed,
+		// > the Client's underlying RoundTripper (typically Transport) may not be able to 
+		// > re-use a persistent TCP connection to the server for a subsequent "keep-alive" request.
+
+		defer resp.Body.Close()
+		b, err := io.ReadAll(resp.Body)
+		if err != nil {
+			results <- Result{
+				// TODO: refine this error wrapping
+				Error: errors.Wrap(err, "an error occured while reading the response body."),
+			}
+
+			return
+		}
+
 		results <- Result{
-			Info:  fmt.Sprintf("status code: %d, time: %v", resp.StatusCode, duration),
-			Error: nil,
+			StatusCode: resp.StatusCode,
+			Body:       string(b),
+			Duration:   duration,
+			Error:      nil,
 		}
 
 	}
