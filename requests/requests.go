@@ -28,8 +28,7 @@ func SendRequests(wg *sync.WaitGroup, url string, number int, results chan<- Res
 
 		if err != nil {
 			results <- Result{
-				// TODO: refine this error wrapping
-				Error: errors.Wrap(err, "an error occured while sending request"),
+				Error: errors.Wrap(err, "an error occured while sending request in SendRequests: "),
 			}
 
 			return
@@ -45,8 +44,7 @@ func SendRequests(wg *sync.WaitGroup, url string, number int, results chan<- Res
 		b, err := io.ReadAll(resp.Body)
 		if err != nil {
 			results <- Result{
-				// TODO: refine this error wrapping
-				Error: errors.Wrap(err, "an error occured while reading the response body."),
+				Error: errors.Wrap(err, "an error occured while reading the response body in SendRequests: "),
 			}
 
 			return
