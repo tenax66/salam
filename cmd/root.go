@@ -3,9 +3,11 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"github.com/tenax66/salam/requests"
 	"sync"
 
+	"github.com/tenax66/salam/requests"
+
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -34,9 +36,13 @@ var rootCmd = &cobra.Command{
 
 		for result := range results {
 			if result.Error != nil {
-				// TODO: use logging library
-				fmt.Printf("%v", result.Error)
+				log.WithFields(log.Fields{
+					"error": result.Error,
+				}).Warn("HTTP error")
+
+				continue
 			}
+
 			fmt.Printf("status code: %d, time: %v\n", result.StatusCode, result.Duration)
 		}
 
@@ -89,4 +95,7 @@ Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
 Use "{{.CommandPath}} [command] --help" for more information about a command.{{end}}
 `
 	rootCmd.SetUsageTemplate(usageTemplate)
+
+	log.SetFormatter(&log.TextFormatter{})
+	log.SetOutput(os.Stdout)
 }
