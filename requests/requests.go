@@ -21,6 +21,9 @@ func RunRequestWorkers(url string, number int, results chan<- Result) {
 	client := &http.Client{
 		Timeout: 10 * time.Second,
 	}
+
+	// TODO: avoid reusing requests
+	// https://github.com/golang/go/issues/19653
 	req, _ := http.NewRequest("GET", url, nil)
 
 	for i := 0; i < number; i++ {
