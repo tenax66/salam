@@ -16,17 +16,28 @@ type Result struct {
 	Error      error
 }
 
+type Work struct {
+	N                 int
+	C                 int
+	DisableKeepAlives bool
+}
+
 // RunRequestWorkers sends an HTTP GET request to the specified URL.
-func RunRequestWorkers(url string, number int, results chan<- Result) {
+func RunRequestWorkers(url string, w *Work, results chan<- Result) {
+	transport := &http.Transport{
+		DisableKeepAlives: w.DisableKeepAlives,
+	}
+
 	client := &http.Client{
-		Timeout: 10 * time.Second,
+		Transport: transport,
+		Timeout:   10 * time.Second,
 	}
 
 	// TODO: avoid reusing requests
 	// https://github.com/golang/go/issues/19653
 	req, _ := http.NewRequest("GET", url, nil)
 
-	for i := 0; i < number; i++ {
+	for i := 0; i < w.N/w.C; i++ {
 		start := time.Now()
 		resp, err := client.Do(req)
 		duration := time.Since(start)

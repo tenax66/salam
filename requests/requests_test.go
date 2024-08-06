@@ -15,7 +15,7 @@ func TestRunRequestWorkers(t *testing.T) {
 
 	type args struct {
 		url     string
-		number  int
+		w  *Work
 		results chan Result
 	}
 	tests := []struct {
@@ -27,7 +27,11 @@ func TestRunRequestWorkers(t *testing.T) {
 			name: "normal",
 			args: args{
 				ts.URL,
-				5,
+				&Work{
+					N: 10,
+					C: 2,
+					DisableKeepAlives: false,
+				},
 				make(chan Result, 5),
 			},
 			expectErr: false,
@@ -36,7 +40,11 @@ func TestRunRequestWorkers(t *testing.T) {
 			name: "invalid url",
 			args: args{
 				"abc://xyz",
-				5,
+				&Work{
+					N: 10,
+					C: 2,
+					DisableKeepAlives: false,
+				},
 				make(chan Result, 5),
 			},
 			expectErr: true,
@@ -44,7 +52,7 @@ func TestRunRequestWorkers(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			RunRequestWorkers(tt.args.url, tt.args.number, tt.args.results)
+			RunRequestWorkers(tt.args.url, tt.args.w, tt.args.results)
 			close(tt.args.results)
 
 			for result := range tt.args.results {

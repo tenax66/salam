@@ -20,6 +20,7 @@ var rootCmd = &cobra.Command{
 		url := args[0]
 		n, _ := cmd.Flags().GetInt("number")
 		c, _ := cmd.Flags().GetInt("concurrency")
+		disableKeepAlives, _ := cmd.Flags().GetBool("disable-keepalive")
 
 		results := make(chan requests.Result, n)
 		wg := new(sync.WaitGroup)
@@ -28,7 +29,12 @@ var rootCmd = &cobra.Command{
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				requests.RunRequestWorkers(url, n/c, results)
+				w := &requests.Work{
+					N: n,
+					C: c,
+					DisableKeepAlives: disableKeepAlives,
+				}
+				requests.RunRequestWorkers(url, w, results)
 			}()
 		}
 
@@ -61,6 +67,7 @@ func init() {
 	rootCmd.DisableFlagsInUseLine = true
 	rootCmd.Flags().IntP("number", "n", 10, "number of requests to run")
 	rootCmd.Flags().IntP("concurrency", "c", 5, "number of workers to run concurrently")
+	rootCmd.Flags().Bool("disable-keepalive", false, "disable keepalive")
 
 	const usageTemplate = `Usage:
 {{if .Runnable}}{{.UseLine}}{{end}}
