@@ -18,9 +18,14 @@ type Result struct {
 
 // RunRequestWorkers sends an HTTP GET request to the specified URL.
 func RunRequestWorkers(url string, number int, results chan<- Result) {
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+	req, _ := http.NewRequest("GET", url, nil)
+
 	for i := 0; i < number; i++ {
 		start := time.Now()
-		resp, err := http.Get(url)
+		resp, err := client.Do(req)
 		duration := time.Since(start)
 
 		if err != nil {
