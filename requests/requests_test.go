@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestSendRequests(t *testing.T) {
+func TestRunRequestWorkers(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Hello, Test!"))
@@ -44,7 +44,7 @@ func TestSendRequests(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			SendRequests(tt.args.url, tt.args.number, tt.args.results)
+			RunRequestWorkers(tt.args.url, tt.args.number, tt.args.results)
 			close(tt.args.results)
 
 			for result := range tt.args.results {

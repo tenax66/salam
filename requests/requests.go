@@ -16,8 +16,8 @@ type Result struct {
 	Error      error
 }
 
-// SendRequests sends an HTTP GET request to the specified URL.
-func SendRequests(url string, number int, results chan<- Result) {
+// RunRequestWorkers sends an HTTP GET request to the specified URL.
+func RunRequestWorkers(url string, number int, results chan<- Result) {
 	for i := 0; i < number; i++ {
 		start := time.Now()
 		resp, err := http.Get(url)
