@@ -16,7 +16,7 @@ var rootCmd = &cobra.Command{
 	Short: "Run benchmarks for <URL>",
 	Long:  `Runs provided number of requests to <URL>.`,
 	Args:  cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) error {
+	Run: func(cmd *cobra.Command, args []string) {
 		url := args[0]
 		n, _ := cmd.Flags().GetInt("number")
 		c, _ := cmd.Flags().GetInt("concurrency")
@@ -45,8 +45,6 @@ var rootCmd = &cobra.Command{
 
 			fmt.Printf("status code: %d, time: %v\n", result.StatusCode, result.Duration)
 		}
-
-		return nil
 	},
 }
 
