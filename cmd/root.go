@@ -17,13 +17,12 @@ var rootCmd = &cobra.Command{
 	Long:  `Runs provided number of requests to <URL>.`,
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var wg sync.WaitGroup
-
 		url := args[0]
 		n, _ := cmd.Flags().GetInt("number")
 		c, _ := cmd.Flags().GetInt("concurrency")
 
 		results := make(chan requests.Result, n)
+		wg := new(sync.WaitGroup)
 
 		for i := 0; i < c; i++ {
 			wg.Add(1)
@@ -33,8 +32,10 @@ var rootCmd = &cobra.Command{
 			}()
 		}
 
-		wg.Wait()
-		close(results)
+		go func() {
+			wg.Wait()
+			close(results)
+		}()
 
 		for result := range results {
 			if result.Error != nil {
