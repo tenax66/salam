@@ -28,7 +28,10 @@ var rootCmd = &cobra.Command{
 
 		for i := 0; i < c; i++ {
 			wg.Add(1)
-			go requests.SendRequests(&wg, url, n/c, results)
+			go func() {
+				defer wg.Done()
+				requests.SendRequests(url, n/c, results)
+			}()
 		}
 
 		wg.Wait()

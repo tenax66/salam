@@ -3,7 +3,6 @@ package requests
 import (
 	"io"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/cockroachdb/errors"
@@ -18,9 +17,7 @@ type Result struct {
 }
 
 // SendRequests sends an HTTP GET request to the specified URL.
-func SendRequests(wg *sync.WaitGroup, url string, number int, results chan<- Result) {
-	defer wg.Done()
-
+func SendRequests(url string, number int, results chan<- Result) {
 	for i := 0; i < number; i++ {
 		start := time.Now()
 		resp, err := http.Get(url)
@@ -28,7 +25,7 @@ func SendRequests(wg *sync.WaitGroup, url string, number int, results chan<- Res
 
 		if err != nil {
 			results <- Result{
-				Error: errors.Wrap(err, "an error occured while sending request in SendRequests: "),
+				Error: errors.Wrap(err, "an error occured while sending request in SendRequests"),
 			}
 
 			return
@@ -37,14 +34,14 @@ func SendRequests(wg *sync.WaitGroup, url string, number int, results chan<- Res
 		// Prevent resource leaks and enable keep-alive
 		// cf. https://pkg.go.dev/net/http#Client
 		// > If the Body is not both read to EOF and closed,
-		// > the Client's underlying RoundTripper (typically Transport) may not be able to 
+		// > the Client's underlying RoundTripper (typically Transport) may not be able to
 		// > re-use a persistent TCP connection to the server for a subsequent "keep-alive" request.
 
 		defer resp.Body.Close()
 		b, err := io.ReadAll(resp.Body)
 		if err != nil {
 			results <- Result{
-				Error: errors.Wrap(err, "an error occured while reading the response body in SendRequests: "),
+				Error: errors.Wrap(err, "an error occured while reading the response body in SendRequests"),
 			}
 
 			return

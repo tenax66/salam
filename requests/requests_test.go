@@ -3,7 +3,6 @@ package requests
 import (
 	"net/http"
 	"net/http/httptest"
-	"sync"
 	"testing"
 )
 
@@ -15,36 +14,44 @@ func TestSendRequests(t *testing.T) {
 	defer ts.Close()
 
 	type args struct {
-		wg      *sync.WaitGroup
 		url     string
 		number  int
 		results chan Result
 	}
 	tests := []struct {
-		name string
-		args args
+		name      string
+		args      args
+		expectErr bool
 	}{
 		{
 			name: "normal",
 			args: args{
-				&sync.WaitGroup{},
 				ts.URL,
 				5,
 				make(chan Result, 5),
 			},
+			expectErr: false,
+		},
+		{
+			name: "invalid url",
+			args: args{
+				"abc://xyz",
+				5,
+				make(chan Result, 5),
+			},
+			expectErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.args.wg.Add(1)
-			SendRequests(tt.args.wg, tt.args.url, tt.args.number, tt.args.results)
-
-			tt.args.wg.Wait()
+			SendRequests(tt.args.url, tt.args.number, tt.args.results)
 			close(tt.args.results)
 
 			for result := range tt.args.results {
-				if (result.Error) != nil {
+				if tt.expectErr == false && result.Error != nil {
 					t.Errorf("expected no error, got %v", result.Error)
+				} else if tt.expectErr == true && result.Error == nil {
+					t.Errorf("expected error, got nil")
 				}
 			}
 		})
