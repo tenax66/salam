@@ -25,7 +25,7 @@ func SendRequests(url string, number int, results chan<- Result) {
 
 		if err != nil {
 			results <- Result{
-				Error: errors.Wrap(err, "an error occured while sending request in SendRequests"),
+				Error: errors.Wrap(err, "error while sending request"),
 			}
 
 			return
@@ -41,7 +41,7 @@ func SendRequests(url string, number int, results chan<- Result) {
 		b, err := io.ReadAll(resp.Body)
 		if err != nil {
 			results <- Result{
-				Error: errors.Wrap(err, "an error occured while reading the response body in SendRequests"),
+				Error: errors.Wrap(err, "error while reading the response body"),
 			}
 
 			return
