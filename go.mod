@@ -4,7 +4,6 @@ go 1.21.6
 
 require (
 	github.com/cockroachdb/errors v1.11.3
-	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.8.1
 )
 

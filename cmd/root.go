@@ -7,7 +7,6 @@ import (
 
 	"github.com/tenax66/salam/requests"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -39,10 +38,7 @@ var rootCmd = &cobra.Command{
 
 		for result := range results {
 			if result.Error != nil {
-				log.WithFields(log.Fields{
-					"error": result.Error,
-				}).Warn("HTTP error")
-
+				fmt.Println(result.Error.Error())
 				continue
 			}
 
@@ -98,7 +94,4 @@ Additional help topics:{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
 Use "{{.CommandPath}} [command] --help" for more information about a command.{{end}}
 `
 	rootCmd.SetUsageTemplate(usageTemplate)
-
-	log.SetFormatter(&log.TextFormatter{})
-	log.SetOutput(os.Stdout)
 }
