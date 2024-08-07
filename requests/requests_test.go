@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestRunRequestWorkers(t *testing.T) {
+func TestRunWorker(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Hello, Test!"))
@@ -15,7 +15,7 @@ func TestRunRequestWorkers(t *testing.T) {
 
 	type args struct {
 		url     string
-		w  *Work
+		w       *Work
 		results chan Result
 	}
 	tests := []struct {
@@ -28,8 +28,8 @@ func TestRunRequestWorkers(t *testing.T) {
 			args: args{
 				ts.URL,
 				&Work{
-					N: 10,
-					C: 2,
+					N:                 10,
+					C:                 2,
 					DisableKeepAlives: false,
 				},
 				make(chan Result, 5),
@@ -41,8 +41,8 @@ func TestRunRequestWorkers(t *testing.T) {
 			args: args{
 				"abc://xyz",
 				&Work{
-					N: 10,
-					C: 2,
+					N:                 10,
+					C:                 2,
 					DisableKeepAlives: false,
 				},
 				make(chan Result, 5),
@@ -52,7 +52,7 @@ func TestRunRequestWorkers(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			RunRequestWorkers(tt.args.url, tt.args.w, tt.args.results)
+			RunWorker(tt.args.url, tt.args.w, tt.args.results)
 			close(tt.args.results)
 
 			for result := range tt.args.results {

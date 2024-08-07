@@ -22,8 +22,8 @@ type Work struct {
 	DisableKeepAlives bool
 }
 
-// RunRequestWorkers sends an HTTP GET request to the specified URL.
-func RunRequestWorkers(url string, w *Work, results chan<- Result) {
+// RunWorker sends an HTTP GET request to the specified URL.
+func RunWorker(url string, w *Work, results chan<- Result) {
 	transport := &http.Transport{
 		DisableKeepAlives: w.DisableKeepAlives,
 	}
