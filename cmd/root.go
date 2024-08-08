@@ -38,6 +38,7 @@ var rootCmd = &cobra.Command{
 			}()
 		}
 
+		// Wait asynchronously to receive values sequentially in the next loop
 		go func() {
 			wg.Wait()
 			close(results)
