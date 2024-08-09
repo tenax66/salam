@@ -17,13 +17,14 @@ type Result struct {
 }
 
 type Work struct {
+	URL string
 	N                 int
 	C                 int
 	DisableKeepAlives bool
 }
 
 // RunWorker sends an HTTP GET request to the specified URL.
-func RunWorker(url string, w *Work, results chan<- Result) {
+func RunWorker(w *Work, results chan<- Result) {
 	transport := &http.Transport{
 		DisableKeepAlives: w.DisableKeepAlives,
 	}
@@ -35,7 +36,7 @@ func RunWorker(url string, w *Work, results chan<- Result) {
 
 	// TODO: avoid reusing requests
 	// https://github.com/golang/go/issues/19653
-	req, _ := http.NewRequest("GET", url, nil)
+	req, _ := http.NewRequest("GET", w.URL, nil)
 
 	for i := 0; i < w.N/w.C; i++ {
 		start := time.Now()

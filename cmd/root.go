@@ -30,11 +30,12 @@ var rootCmd = &cobra.Command{
 			go func() {
 				defer wg.Done()
 				w := &requests.Work{
+					URL:               url,
 					N:                 n,
 					C:                 c,
 					DisableKeepAlives: disableKeepAlives,
 				}
-				requests.RunWorker(url, w, results)
+				requests.RunWorker(w, results)
 			}()
 		}
 

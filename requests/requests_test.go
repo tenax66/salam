@@ -14,7 +14,6 @@ func TestRunWorker(t *testing.T) {
 	defer ts.Close()
 
 	type args struct {
-		url     string
 		w       *Work
 		results chan Result
 	}
@@ -26,8 +25,8 @@ func TestRunWorker(t *testing.T) {
 		{
 			name: "normal",
 			args: args{
-				ts.URL,
 				&Work{
+					URL:               ts.URL,
 					N:                 10,
 					C:                 2,
 					DisableKeepAlives: false,
@@ -39,8 +38,8 @@ func TestRunWorker(t *testing.T) {
 		{
 			name: "invalid url",
 			args: args{
-				"abc://xyz",
 				&Work{
+					URL:               "abc://xyz",
 					N:                 10,
 					C:                 2,
 					DisableKeepAlives: false,
@@ -52,7 +51,7 @@ func TestRunWorker(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			RunWorker(tt.args.url, tt.args.w, tt.args.results)
+			RunWorker(tt.args.w, tt.args.results)
 			close(tt.args.results)
 
 			for result := range tt.args.results {
