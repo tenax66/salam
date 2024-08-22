@@ -1,8 +1,10 @@
 package requests
 
 import (
+	"fmt"
 	"io"
 	"net/http"
+	"net/http/httptrace"
 	"time"
 
 	"github.com/cockroachdb/errors"
@@ -17,7 +19,7 @@ type Result struct {
 }
 
 type Work struct {
-	URL string
+	URL               string
 	N                 int
 	C                 int
 	DisableKeepAlives bool
@@ -25,6 +27,9 @@ type Work struct {
 
 // RunWorker sends an HTTP GET request to the specified URL.
 func RunWorker(w *Work, results chan<- Result) {
+
+	var dnsStart time.Duration
+
 	transport := &http.Transport{
 		DisableKeepAlives: w.DisableKeepAlives,
 	}
@@ -34,9 +39,20 @@ func RunWorker(w *Work, results chan<- Result) {
 		Timeout:   10 * time.Second,
 	}
 
+	// TODO: add functions
+	trace := &httptrace.ClientTrace{
+		DNSStart: func(info httptrace.DNSStartInfo) {
+			dnsStart = now()
+		},
+		DNSDone: func(dnsInfo httptrace.DNSDoneInfo) {
+			fmt.Printf("DNS lookup done: %v", now()-dnsStart)
+		},
+	}
+
 	// TODO: avoid reusing requests
 	// https://github.com/golang/go/issues/19653
 	req, _ := http.NewRequest("GET", w.URL, nil)
+	req = req.WithContext(httptrace.WithClientTrace(req.Context(), trace))
 
 	for i := 0; i < w.N/w.C; i++ {
 		start := time.Now()
